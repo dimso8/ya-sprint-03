@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose --file ../smart-home-app/docker-compose.yml convert
+    kompose.version: 1.34.0 (HEAD)
+  labels:
+    io.kompose.service: db-server
+  name: db-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: db-server
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose --file ../smart-home-app/docker-compose.yml convert
+        kompose.version: 1.34.0 (HEAD)
+      labels:
+        io.kompose.service: db-server
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_MULTIPLE_DATABASES
+              value: 'smart_home,device_manager_db,telemetry_db'
+            - name: POSTGRES_PASSWORD
+              value: admin
+            - name: POSTGRES_USER
+              value: admin
+          image: dmitrys80/smart-home-db-server:1.0
+          #livenessProbe:
+          #  exec:
+          #    command:
+          #      - 'pg_isready -U admin -d admin'
+          #  failureThreshold: 5
+          #  initialDelaySeconds: 30
+          #  periodSeconds: 10
+          #  timeoutSeconds: 10
+          name: db-server
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+      restartPolicy: Always

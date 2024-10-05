@@ -1,0 +1,68 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+HIDE_STEREOTYPE()
+SHOW_PERSON_PORTRAIT()
+
+'Person(engineer, "Engineer", "Управляет умным домом")
+'Person(user, "User", "Управляет умным домом")
+
+System_Boundary(smartHomeSystem, "Smart Home"){
+
+'    Container(smartHomeWeb, "Web Client", "outsource", \
+'        $descr="Предоставляет пользовательский интерфейс для управления")
+
+    Container(apiGw, "API Gateway", "Zuul", \
+        $descr="Маршрутизирует запросы")
+
+    Container(smartHomeServer, "Smart Home Server", "Java 17, SpringBoot", \
+        $descr="Введет учет клиентских систем отопления. Управляет температурой в домах клиентов")
+
+    Container(smartHomeDb, "Database Cluster", "PostgreSQL", \
+        $descr="Хранит данные")
+
+    Container(deviceManagerService, "Device Manager Service", $techn="JavaScript, Node.js", \
+        $descr="Управляет устройствами")
+
+    Container(telemetryService, "Telemetry Service", $techn="JavaScript, Node.js", \
+        $descr="Управляет телеметрией")
+}
+
+System_Ext(heatingSystem,\
+    "Heating System",\
+    "Мониторит температуру в доме. Обогревает дом",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+System_Ext(otherSystem,\
+    "Some Other System",\
+    "Предостваляет API для управления",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+System_Ext(otherSystemSensor,\
+    "Some Other System Sensor",\
+    "Собирает телеметрию",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+Rel(apiGw, deviceManagerService, "Добавляет ЖЦ устройства", "HTTP/REST")
+Rel(apiGw, deviceManagerService, "Настраивает сценарий работы устройства", "HTTP/REST")
+Rel(apiGw, telemetryService, "Просматривает телеметрию", "HTTP/REST")
+
+Rel_U(smartHomeServer, smartHomeDb, "Использует", "JDBC")
+
+Rel(deviceManagerService, smartHomeDb, "Использует", "JDBC")
+Rel(deviceManagerService, smartHomeServer, "Использует", "HTTP/REST")
+
+Rel(telemetryService, smartHomeDb, "Использует", "JDBC")
+Rel(telemetryService, smartHomeServer, "Использует", "JDBC")
+Rel_L(telemetryService, deviceManagerService, "Отправляет телеметрию", "HTTP/REST")
+
+Rel_L(smartHomeServer, heatingSystem, "Включает/выключает систему отопления", "standard protocol")
+Rel_L(smartHomeServer, heatingSystem, "Запрашивает температуру в доме", "standard protocol")
+
+Rel_L(deviceManagerService, otherSystem, "Отправляет команду", "standard protocol")
+Rel_R(telemetryService, otherSystemSensor, "Запрашивает статус устройства", "standard protocol")
+
+@enduml

@@ -1,0 +1,94 @@
+@startuml
+hide empty members
+hide circle
+
+class User {
+    id
+    name
+}
+
+class UserRole {
+    id
+    user_id
+    house_id
+    role_type_id
+}
+
+class House {
+    id
+    address
+}
+
+class Device {
+    id
+    house_id
+    serial_number
+    device_type_id
+    status_id
+}
+
+class DeviceType {
+    id
+    description
+}
+
+class Command {
+    id
+    device_type_id
+    action
+    input_parameters
+    output_parameters
+    description
+}
+
+class Telemetry {
+    id
+    created
+    device_id
+    data
+}
+
+class Scenario {
+    id
+    device_id
+    rule_id
+    description
+}
+
+class ScenarioStep {
+    id
+    scenario_id
+    command_id
+    rule_id
+    description
+}
+
+class ScenarioRunHistory {
+    id
+    agent_id
+    scenario_id
+    step_id
+    started
+    finished
+    input_data
+    output_data
+    telemetry_id
+}
+
+User "1" -u-( "0..* " UserRole : has >
+UserRole " 0..*" )-u- "1" House : managed by <
+
+House "1 " --( "0..* " Device : installed in <
+Device "1" )-- "0..* " DeviceType : described by >
+Device "1" --( "0..*" Telemetry : compatible with <
+Device "1" -d-( "0..*" Scenario : managed by >
+
+DeviceType "0" --( "0..*" Command : compatible with <
+
+'Device <.. Scenario
+'Scenario ..> TelemetryData
+Command "1" -( "0..*" ScenarioStep : invokes <
+Scenario "0" -l-( "1..*" ScenarioStep : includes >
+Scenario "1" -r-( "0..*" ScenarioRunHistory : used by <
+
+@enduml

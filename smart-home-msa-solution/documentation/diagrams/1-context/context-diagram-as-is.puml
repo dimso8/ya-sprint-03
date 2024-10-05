@@ -1,0 +1,29 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+HIDE_STEREOTYPE()
+SHOW_PERSON_PORTRAIT()
+
+Person(engineer, "Engineer", "Устанавливает систему отопления в доме клиента")
+Person(user, "User", "Управляет температурой в доме")
+
+System(smartHomeSystem,\
+    "Smart Home",\
+    "Введет учет клиентских систем отопления. Управляет температурой в домах клиентов.  \
+    Предоставляет пользовательский интерфейс",\
+    $type="Software System")
+
+System_Ext(smartHomeDevice,\
+    "Heating System",\
+    "Мониторит температуру в доме. Обогревает дом",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+Rel(user, smartHomeSystem, "Устанавливает температуру в доме", "HTTP/REST")
+Rel(user, smartHomeSystem, "Проверяет температуру в доме", "HTTP/REST")
+
+Rel(engineer, smartHomeSystem, "Добавляет данные системы отопления", "manual query")
+
+Rel(smartHomeSystem, smartHomeDevice, "Включает/выключает систему отопления", "standard protocol")
+Rel(smartHomeSystem, smartHomeDevice, "Запрашивает температуру в доме", "standard protocol")
+@enduml
