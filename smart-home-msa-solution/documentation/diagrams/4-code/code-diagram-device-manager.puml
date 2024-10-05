@@ -1,0 +1,25 @@
+@startuml
+hide empty members
+
+class User
+class UserRole
+class House
+class Device
+class DeviceType
+class Command
+class TelemetryData
+class Scenario
+
+User "0..*" - "1..*" House
+(User, House) .. UserRole
+
+House "0..1" -- "0..*" Device
+Device <- DeviceType
+
+Device <.. Command
+Device <.. TelemetryData
+Device <.. Scenario
+Scenario ..> TelemetryData
+Command ..> Scenario
+
+@enduml

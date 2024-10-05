@@ -1,0 +1,65 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+HIDE_STEREOTYPE()
+SHOW_PERSON_PORTRAIT()
+
+Person(user, "User", "Управляет умным домом")
+'Person(engineer, "Engineer", "Сопровождает систему")
+
+System(smartHomeSystem,\
+    "Smart Home",\
+    "Введет учет клиентских устройств. Управляет устройствами.  \
+    Предоставляет пользовательский интерфейс",\
+    $type="Software System")
+
+System_Ext(heatingSystem,\
+    "Heating System",\
+    "Мониторит температуру в доме. Обогревает дом",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+System_Ext(lightsSystem,\
+    "Lights System",\
+    "Управляет светом",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+System_Ext(gateSystem,\
+    "Gate System",\
+    "Управляет воротами",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+System_Ext(cctvSystem,\
+    "CCTV System",\
+    "Наблюдение за домом",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+System_Ext(otherSystem,\
+    "Some Other System",\
+    "Управляет устройством",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+Rel(user, smartHomeSystem, "Добавляет ЖЦ устройства", "HTTP/REST")
+Rel(user, smartHomeSystem, "Настраивает сценарий работы устройства", "HTTP/REST")
+Rel(user, smartHomeSystem, "Просматривает телеметрию", "HTTP/REST")
+
+Rel(smartHomeSystem, heatingSystem, "Включает/выключает систему отопления", "standard protocol")
+Rel(smartHomeSystem, heatingSystem, "Запрашивает температуру в доме", "standard protocol")
+
+Rel(smartHomeSystem, lightsSystem, "Включает/выключает свет", "standard protocol")
+Rel(smartHomeSystem, lightsSystem, "Запрашивает статус устройства", "standard protocol")
+
+Rel(smartHomeSystem, gateSystem, "Открывает/закрывает ворота", "standard protocol")
+Rel(smartHomeSystem, gateSystem, "Запрашивает статус устройства", "standard protocol")
+
+Rel(smartHomeSystem, cctvSystem, "Отправляет команду", "standard protocol")
+Rel(smartHomeSystem, cctvSystem, "Запрашивает статус устройства", "standard protocol")
+
+Rel(smartHomeSystem, otherSystem, "Отправляет команду", "standard protocol")
+Rel(smartHomeSystem, otherSystem, "Запрашивает статус устройства", "standard protocol")
+
+@enduml

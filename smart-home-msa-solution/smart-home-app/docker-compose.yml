@@ -1,0 +1,78 @@
+name: smart-home
+
+services:
+  db-server:
+    build: db
+    restart: always
+    ports:
+      #- ${DB_PORT}:${DB_PORT}
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: ${DB_NAME_DEVICE_MANAGER},${DB_NAME_TELEMETRY},${DB_NAME_MONOLITH}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_PASSWORD}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  device-manager:
+    build:
+      context: ./device-manager
+      target: prod
+    ports:
+      - 3000:3000
+      - 9229:9229
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME_DEVICE_MANAGER}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+    volumes:
+      - ./device-manager/src:/app/src
+    depends_on:
+      db-server:
+        condition: service_healthy
+
+  telemetry:
+    build: 
+      context: ./telemetry
+      target: prod
+    ports:
+      - 3001:3001
+      - 9228:9228
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME_TELEMETRY}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+    volumes:
+      - ./telemetry/src:/app/src
+    depends_on:
+      db-server:
+        condition: service_healthy
+
+  monolith:
+    build: ../../smart-home-monolith
+    ports:
+      - "8081:8081"
+    environment:
+      DB_URL: jdbc:postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME_MONOLITH}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME_MONOLITH}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+    depends_on:
+      db-server:
+        condition: service_healthy

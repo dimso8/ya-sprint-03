@@ -1,0 +1,78 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+HIDE_STEREOTYPE()
+
+System_Boundary(smartHomeSystem, "Smart Home"){
+
+    Container(apiGw, "API Gateway", "Zuul", \
+        $descr="Маршрутизирует запросы")
+
+    Container_Boundary(deviceManagerService, "Device Manager"){
+
+        Component(deviceController, "Device Controller", \
+            $techn="HTTP-server", \
+            $descr="Обрабатывает запросы по ЖЦ устройств")
+
+        Component(scenarioController, "Scenario Controller", \
+            $techn="HTTP-server", \
+            $descr="Обрабатывает запросы по ЖЦ сценариев работы устройств")
+
+        Component(telemetryController, "Telemetry Controller", \
+            $techn="HTTP-server", \
+            $descr="Обрабатывает обновления телеметрии")
+
+        Component(businessLogic, "Service Layer", \
+            $techn="JS", \
+            $descr="Выполняет вычисления")
+
+        Component(legacyAdapter, "Legacy Adaper", \
+            $techn="HTTP-client", \
+            $descr="Управляет монолитом")
+
+        Component(repositoryLayer, "Repository Layer", \
+            $techn="sequelize", \
+            $descr="Управляет данными")
+
+        Component(deviceAdaper, "Device Adaper", \
+            $techn="device-client", \
+            $descr="Управляет устройством")
+    }
+
+    Container(smartHomeServer, "Smart Home Server", "Java 17, SpringBoot", \
+        $descr="Введет учет клиентских систем отопления. Управляет температурой в домах клиентов")
+
+    Container_Boundary(smartHomeDb, "Database Cluster", "PostgreSQL") {
+            ComponentDb("deviceManagerDb", \
+                "Device Manager Database", \
+                $descr="Хранит данные")
+    }
+
+    Container(telemetryService, "Telemetry Service", $techn="JavaScript, Node.js", \
+        $descr="Управляет телеметрией")
+}
+System_Ext(otherSystem,\
+    "Some Other System",\
+    "Предостваляет API для управления",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+Rel(apiGw, deviceController, "Добавляет ЖЦ устройства", "HTTP/REST")
+Rel(apiGw, scenarioController, "Настраивает сценарий работы устройства", "HTTP/REST")
+
+Rel(telemetryService, telemetryController, "Передает данные телеметрии", "HTTP/REST")
+
+Rel(deviceController, businessLogic, "Делает вызовы")
+Rel(scenarioController, businessLogic, "Делает вызовы")
+Rel(telemetryController, businessLogic, "Делает вызовы")
+
+Rel(businessLogic, legacyAdapter, "Делает вызовы")
+Rel(businessLogic, repositoryLayer, "Делает вызовы")
+Rel(businessLogic, deviceAdaper, "Делает вызовы")
+
+Rel(legacyAdapter, smartHomeServer, "Использует", "HTTP/REST")
+Rel(repositoryLayer, "deviceManagerDb", "Использует", "JDBC")
+Rel(deviceAdaper, otherSystem, "Отправляет команду", "standard protocol")
+
+@enduml

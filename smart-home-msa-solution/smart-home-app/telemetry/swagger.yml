@@ -1,0 +1,132 @@
+openapi: 3.0.0
+info:
+  title: Device Manager API
+  description: >-
+    API for managing devices, scenarios, and telemetry data in the Smart Home
+    system.
+  version: 1.0.0
+servers:
+  - url: https://api.smarthome.com/v1
+security:
+  - api_key: []
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  responses:
+    TelemetryHistory:
+      description: Telemetry historical data
+      content:
+        application/json:
+          example:
+            - device_id: 1
+              data:
+                serial_number: ABCDE12345
+                device_type_id: 1
+                house_id: 1
+                is_on: true
+            - device_id: 2
+              data:
+                serial_number: QAZXSW52345
+                device_type_id: 2
+                house_id: 1
+                is_on: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                device_id:
+                  type: integer
+                data:
+                  type: object
+                  additionalProperties: true
+    TelemetryDetail:
+      description: Telemetry detailed data
+      content:
+        application/json:
+          example:
+            device_id: 1
+            data:
+              serial_number: ABCDE12345
+              device_type_id: 1
+              house_id: 1
+              is_on: true
+          schema:
+            type: object
+            properties:
+              device_id:
+                type: integer
+              data:
+                type: object
+                additionalProperties: true
+    TelemetryInput:
+      description: Telemetry data processed successfully
+      content:
+        application/json:
+          example:
+            message: device_id = 1
+    TelemetryError:
+      description: Invalid telemetry data
+paths:
+  /telemetry:
+    post:
+      summary: Input telemetry data
+      tags:
+        - Telemetry Controller
+      operationId: inputTelemetry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: integer
+                data:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/TelemetryDetail'
+        '400':
+          $ref: '#/components/responses/TelemetryError'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error
+    get:
+      summary: Get telemetry data
+      tags:
+        - Telemetry Controller
+      responses:
+        '200':
+          $ref: '#/components/responses/TelemetryHistory'
+        '400':
+          $ref: '#/components/responses/TelemetryError'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error
+  /telemetry/{telemetryId}:
+    get:
+      summary: Get telemetry details
+      tags:
+        - Telemetry Controller
+      operationId: getDevice
+      parameters:
+        - name: telemetryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/TelemetryDetail'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error

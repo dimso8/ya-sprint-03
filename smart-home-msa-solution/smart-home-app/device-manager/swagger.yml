@@ -1,0 +1,776 @@
+openapi: 3.0.0
+info:
+  title: Device Manager API
+  description: >-
+    API for managing devices, scenarios, and telemetry data in the Smart Home
+    system.
+  version: 1.0.0
+x-kusk:
+  upstream:
+    service:
+      name: device-manager
+      namespace: default
+      port: 3000
+    rewrite:
+      pattern: "^/"
+      substitution: "/api/"
+#servers:
+#  - url: https://api.smarthome.com/v1
+#security:
+#  - api_key: []
+components:
+#  securitySchemes:
+#    api_key:
+#      type: apiKey
+#      in: header
+#      name: X-API-Key
+  responses:
+    DeviceList:
+      description: A list of devices
+      content:
+        application/json:
+          example:
+            - id: 1
+              serial_number: ABCDE12345
+              device_type_id: 1
+              house_id: 1
+              is_on: true
+            - id: 2
+              serial_number: QAZXSW52345
+              device_type_id: 2
+              house_id: 1
+              is_on: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                serial_number:
+                  type: string
+                device_type_id:
+                  type: integer
+                house_id:
+                  type: integer
+                is_on:
+                  type: boolean
+    DeviceDetail:
+      description: A detailed device object
+      content:
+        application/json:
+          example:
+            id: 3
+            serial_number: 1-REWQ54326
+            device_type_id: 2
+            house_id: 4
+            is_on: true
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              serial_number:
+                type: string
+              device_type_id:
+                type: integer
+              house_id:
+                type: integer
+              is_on:
+                type: boolean
+    DeviceDeleted:
+      description: Device deleted successfully
+      content:
+        application/json:
+          example:
+            message: device_id = 1
+    CommandSent:
+      description: Command sent successfully
+      content:
+        application/json:
+          example:
+            job_id: 4-GFF
+          schema:
+            type: object
+            properties:
+              job_id:
+                type: string
+                description: ID of the command job for tracking
+    CommandStatus:
+      description: Command execution status
+      content:
+        application/json:
+          example:
+            status: PENDING
+            progress: 2
+            result:
+              additionalProp1:
+                input1: 1
+                input2: F
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - PENDING
+                  - IN_PROGRESS
+                  - COMPLETED
+                  - FAILED
+              progress:
+                type: integer
+              result:
+                type: object
+                additionalProperties: true
+    TelemetryHistory:
+      description: Telemetry historical data
+      content:
+        application/json:
+          example:
+            - device_id: 1
+              data:
+                serial_number: ABCDE12345
+                device_type_id: 1
+                house_id: 1
+                is_on: true
+            - device_id: 2
+              data:
+                serial_number: QAZXSW52345
+                device_type_id: 2
+                house_id: 1
+                is_on: true
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                device_id:
+                  type: integer
+                data:
+                  type: object
+                  additionalProperties: true
+    TelemetryDetail:
+      description: Telemetry detailed data
+      content:
+        application/json:
+          example:
+            device_id: 1
+            data:
+              serial_number: ABCDE12345
+              device_type_id: 1
+              house_id: 1
+              is_on: true
+          schema:
+            type: object
+            properties:
+              device_id:
+                type: integer
+              data:
+                type: object
+                additionalProperties: true
+    TelemetryInput:
+      description: Telemetry data processed successfully
+      content:
+        application/json:
+          example:
+            message: device_id = 1
+    TelemetryError:
+      description: Invalid telemetry data
+    ScenarioCreated:
+      description: Scenario created successfully
+      content:
+        application/json:
+          example:
+            scenario_id: 4
+          schema:
+            type: object
+            properties:
+              scenario_id:
+                type: integer
+    ScenarioList:
+      description: A list of scenarios
+      content:
+        application/json:
+          example:
+            - scenario_id: 1
+              description: MOCK! Heating System controle
+            - scenario_id: 2
+              description: MOCK! Lights turn off
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                scenario_id:
+                  type: integer
+                description:
+                  type: string
+    ScenarioDetail:
+      description: A detailed scenario object
+      content:
+        application/json:
+          example:
+            scenario_id: 1
+            description: MOCK! request. Heating scenario
+            steps:
+              - command_id: 1
+                input_parameters:
+                  is_on: true
+                trigger_condition: tempereture < ${target_tempereture}
+                delay_seconds: 0
+              - command_id: 2
+                input_parameters:
+                  is_on: false
+                trigger_condition:  tempereture <= ${target_tempereture}
+                delay_seconds: 1
+          schema:
+            type: object
+            properties:
+              scenario_id:
+                type: integer
+              description:
+                type: string
+              steps:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    command_id:
+                      type: integer
+                    input_parameters:
+                      type: object
+                    trigger_condition:
+                      type: string
+                    delay_seconds:
+                      type: integer
+    ScenarioUpdated:
+      description: Scenario updated successfully
+      content:
+        application/json:
+          example:
+            status: MOCK SUCCESS
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                enum:
+                  - SUCCESS
+                  - FAILURE
+    ScenarioDeleted:
+      description: Scenario deleted successfully
+      content:
+        application/json:
+          example:
+            message: MOCK scenario_id = 1
+    ScenarioHistory:
+      description: Scenario execution history
+      content:
+        application/json:
+          example:
+            - start_time: '2024-10-02T15:28:49.172Z'
+              end_time: '2024-10-02T15:28:49.172Z'
+              status: SUCCESS
+              logs: MOCK scenario_id = 1 finished
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                start_time:
+                  type: string
+                  format: date-time
+                end_time:
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  enum:
+                    - SUCCESS
+                    - FAILURE
+                logs:
+                  type: string
+    HeatingDetail:
+      description: A heating system info
+      content:
+        application/json:
+          example:
+            id: 445
+            'on': true
+            targetTemperature: 20.3
+            currentTemperature: 22.1
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+              'on':
+                type: boolean
+              targetTemperature:
+                type: number
+              currentTemperature:
+                type: number
+tags:
+  - name: Device Controller
+    description: Endpoints related to device management and telemetry input.
+  - name: Scenario Controller
+    description: Endpoints related to scenario management and execution.
+  - name: Heating System Controller
+    description: Endpoints for monolith application (deprcated)
+paths:
+  /devices:
+    get:
+      summary: Get a list of devices
+      tags:
+        - Device Controller
+      operationId: listDevices
+      parameters:
+        - name: limit
+          in: query
+          description: Number of devices to return
+          schema:
+            type: integer
+            default: 10
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceList'
+        '500':
+          description: Internal server error
+    post:
+      summary: Add a new device
+      tags:
+        - Device Controller
+      operationId: addDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serial_number:
+                  type: string
+                device_type_id:
+                  type: integer
+                house_id:
+                  type: integer
+      responses:
+        '201':
+          $ref: '#/components/responses/DeviceDetail'
+        '400':
+          description: Invalid request format
+        '500':
+          description: Internal server error
+  /device/{deviceId}:
+    get:
+      summary: Get device details
+      tags:
+        - Device Controller
+      operationId: getDevice
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/DeviceDetail'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete a device
+      tags:
+        - Device Controller
+      operationId: deleteDevice
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          $ref: '#/components/responses/DeviceDeleted'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error
+  /device/{deviceId}/command:
+    post:
+      summary: Send a command to a device
+      tags:
+        - Device Controller
+      operationId: sendCommandToDevice
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command_id:
+                  type: integer
+                input_parameters:
+                  type: object
+      responses:
+        '200':
+          $ref: '#/components/responses/CommandSent'
+        '400':
+          description: Invalid command or input parameters
+        '404':
+          description: Device or command not found
+        '500':
+          description: Internal server error
+  /commands/{jobId}/status:
+    get:
+      summary: Get the status of a command execution
+      tags:
+        - Command Controller
+      operationId: getCommandStatus
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/CommandStatus'
+        '404':
+          description: Job ID not found
+        '500':
+          description: Internal server error
+  /telemetry:
+    x-kusk:
+      upstream:
+        service:
+          name: telemetry
+          port: 3001
+          namespace: default
+        rewrite:
+          pattern: "^/"
+          substitution: "/api/"
+    post:
+      summary: Input telemetry data
+      tags:
+        - Telemetry Controller
+      operationId: inputTelemetry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: integer
+                data:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/TelemetryHistory'
+        '400':
+          $ref: '#/components/responses/TelemetryError'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error
+    get:
+      x-kusk:
+        upstream:
+          service:
+            name: telemetry
+            port: 3001
+            namespace: default
+          rewrite:
+            pattern: "^/telemetry"
+            substitution: "/api/telemetry-history"
+      summary: Get telemetry data
+      tags:
+        - Telemetry Controller
+      responses:
+        '200':
+          $ref: '#/components/responses/TelemetryDetail'
+        '400':
+          $ref: '#/components/responses/TelemetryError'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error
+  /telemetry/{telemetryId}:
+    get:
+      x-kusk:
+        upstream:
+          service:
+            name: telemetry
+            port: 3001
+            namespace: default
+          rewrite:
+            pattern: "^/"
+            substitution: "/api/"
+      summary: Get device details
+      tags:
+        - Device Controller
+      operationId: getDevice
+      parameters:
+        - name: telemetryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/TelemetryDetail'
+        '404':
+          description: Device not found
+        '500':
+          description: Internal server error
+  /scenarios:
+    get:
+      summary: Get a list of scenarios
+      tags:
+        - Scenario Controller
+      operationId: listScenarios
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/ScenarioList'
+        '500':
+          description: Internal server error
+    post:
+      summary: Create a new scenario
+      tags:
+        - Scenario Controller
+      operationId: addScenario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: integer
+                description:
+                  type: string
+                steps:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      command_id:
+                        type: integer
+                      input_parameters:
+                        type: object
+                      trigger_condition:
+                        type: string
+                      delay_seconds:
+                        type: integer
+      responses:
+        '201':
+          $ref: '#/components/responses/ScenarioCreated'
+        '400':
+          description: Invalid request format
+        '500':
+          description: Internal server error
+  /scenarios/{scenarioId}:
+    get:
+      summary: Get scenario details
+      tags:
+        - Scenario Controller
+      operationId: getScenario
+      parameters:
+        - name: scenarioId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/ScenarioDetail'
+        '404':
+          description: Scenario not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update an existing scenario
+      tags:
+        - Scenario Controller
+      operationId: updateScenario
+      parameters:
+        - name: scenarioId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                steps:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      command_id:
+                        type: integer
+                      input_parameters:
+                        type: object
+                      trigger_condition:
+                        type: string
+                      delay_seconds:
+                        type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/ScenarioUpdated'
+        '400':
+          description: Invalid request format
+        '404':
+          description: Scenario not found
+        '500':
+          description: Internal server error
+    delete:
+      summary: Delete a scenario
+      tags:
+        - Scenario Controller
+      operationId: deleteScenario
+      parameters:
+        - name: scenarioId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          $ref: '#/components/responses/ScenarioDeleted'
+        '404':
+          description: Scenario not found
+        '500':
+          description: Internal server error
+  /scenarios/{scenarioId}/start:
+    post:
+      summary: Start a scenario
+      tags:
+        - Scenario Controller
+      operationId: startScenario
+      parameters:
+        - name: scenarioId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Scenario started
+        '404':
+          description: Scenario not found
+        '500':
+          description: Internal server error
+  /scenarios/{scenarioId}/history:
+    get:
+      summary: Get scenario execution history
+      tags:
+        - Scenario Controller
+      operationId: getScenarioHistory
+      parameters:
+        - name: scenarioId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/ScenarioHistory'
+        '404':
+          description: Scenario not found
+        '500':
+          description: Internal server error
+
+###
+  /heating/{systemId}:
+    get:
+      summary: Get Heating System status details
+      tags:
+        - Heating System Controller
+      operationId: getHeatingStatus
+      deprecated: true
+      parameters:
+        - name: systemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/HeatingDetail'
+        '404':
+          description: Scenario not found
+        '500':
+          description: Internal server error
+    put:
+      summary: Update an Heating System status
+      tags:
+        - Heating System Controller
+      operationId: updateHeatingStatus
+      deprecated: true
+      parameters:
+        - name: systemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                on:
+                  type: boolean
+                targetTemperature:
+                  type: number
+                  format: double
+                currentTemperature:
+                  type: number
+                  format: double
+      responses:
+        '200':
+          $ref: '#/components/responses/HeatingDetail'
+        '400':
+          description: Invalid request format
+        '404':
+          description: Scenario not found
+        '500':
+          description: Internal server errors

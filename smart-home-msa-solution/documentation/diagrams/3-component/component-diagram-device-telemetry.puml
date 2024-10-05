@@ -1,0 +1,73 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+HIDE_STEREOTYPE()
+
+System_Boundary(smartHomeSystem, "Smart Home"){
+
+    Container(apiGw, "API Gateway", "Zuul", \
+        $descr="Маршрутизирует запросы")
+
+    Container_Boundary(telemetryService, "Telemetry"){
+
+        Component(deviceManagerAdapter, "Device Manager Adapter", \
+            $techn="HTTP-client", \
+            $descr="Отправляет данные телеметрии")
+
+        Component(telemetryController, "Telemetry Controller", \
+            $techn="HTTP-server", \
+            $descr="Обрабатывает обновления телеметрии")
+
+        Component(businessLogic, "Service Layer", \
+            $techn="JS", \
+            $descr="Выполняет вычисления")
+
+        Component(legacyAdapter, "Legacy Adaper", \
+            $techn="HTTP-client", \
+            $descr="Управляет монолитом")
+
+        Component(repositoryLayer, "Repository Layer", \
+            $techn="sequelize", \
+            $descr="Управляет данными")
+
+        Component(deviceSensorAdapter, "Device Sensor Adaper", \
+            $techn="device-client", \
+            $descr="Управляет сенсором")
+    }
+
+    Container(smartHomeServer, "Smart Home Server", "Java 17, SpringBoot", \
+        $descr="Введет учет клиентских систем отопления. Управляет температурой в домах клиентов")
+
+    Container_Boundary(smartHomeDb, "Database Cluster", "PostgreSQL") {
+            ComponentDb(telemetryDb, \
+                "Telemetry Database", \
+                $descr="Хранит данные")
+    }
+
+    Container(deviceManagerServive, "Device Manager", $techn="JavaScript, Node.js", \
+        $descr="Управляет устройством")
+}
+System_Ext(otherSystemSensor,\
+    "Some Other System Sensor",\
+    "Предостваляет API для управления",\
+    $sprite="robot",\
+    $type="Hardware System")
+
+Rel(apiGw, telemetryController, "Просматривает телеметрию", "HTTP/REST")
+
+Rel(deviceManagerAdapter, deviceManagerServive, "Передает данные телеметрии", "HTTP/REST")
+
+Rel(telemetryController, businessLogic, "Делает вызовы")
+
+Rel(businessLogic, legacyAdapter, "Делает вызовы")
+Rel(businessLogic, repositoryLayer, "Делает вызовы")
+Rel(businessLogic, deviceSensorAdapter, "Делает вызовы")
+Rel(businessLogic, deviceManagerAdapter, "Делает вызовы")
+
+Rel(legacyAdapter, smartHomeServer, "Использует", "HTTP/REST")
+Rel(repositoryLayer, telemetryDb, "Использует", "JDBC")
+Rel(deviceSensorAdapter, otherSystemSensor, "Получает телеметрию", "standard protocol")
+
+
+@enduml
